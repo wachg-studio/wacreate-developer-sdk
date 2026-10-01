@@ -23,16 +23,60 @@ from PIL import Image, ImageDraw
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PUBLIC_INFO = json.loads((ROOT / "tools" / "public_api_catalog.json").read_text(encoding="utf-8"))
-CORE_VERSION = PUBLIC_INFO["version"]
-PUBLIC_API_VERSION = PUBLIC_INFO["apiVersion"]
-PUBLIC_API_CATALOG = PUBLIC_INFO["catalog"]
-def api_info():
-    return json.loads(json.dumps(PUBLIC_INFO))
-def missing_core_message(addon_id=None, minimum_version=None):
-    return "需要启用机械动力·蛙创studio主包 >= %s：%s" % (minimum_version or CORE_VERSION, addon_id or "附属包")
-def validate_addon_id(value):
-    return bool(re.fullmatch(r"[a-z0-9][a-z0-9_.-]{1,63}", str(value or "")))
+SCRIPT_ROOT = ROOT / "behavior_pack_tcTZYHCW"
+if str(SCRIPT_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_ROOT))
+
+# Standalone distributions (developer exe / SDK repo) bundle the API catalog
+# as JSON next to this file; running from the main project imports the live
+# public_api module instead, so both stay authoritative without forking.
+_CATALOG_FILE = Path(__file__).resolve().parent / "public_api_catalog.json"
+
+try:
+    if _CATALOG_FILE.is_file():
+        _PUBLIC_INFO = json.loads(_CATALOG_FILE.read_text(encoding="utf-8"))
+        CORE_VERSION = _PUBLIC_INFO["version"]
+        PUBLIC_API_VERSION = _PUBLIC_INFO["apiVersion"]
+        PUBLIC_API_CATALOG = _PUBLIC_INFO["catalog"]
+
+        def api_info():
+            return json.loads(json.dumps(_PUBLIC_INFO))
+
+        def missing_core_message(addon_id=None, minimum_version=None):
+            return ("需要启用机械动力·蛙创studio主包 >= %s：%s"
+                    % (minimum_version or CORE_VERSION, addon_id or "附属包"))
+
+        def validate_addon_id(value):
+            return bool(re.fullmatch(r"[a-z0-9][a-z0-9_.-]{1,63}", str(value or "")))
+    else:
+        raise ImportError("bundled catalog not present")
+except Exception:  # Keep documentation tools usable before a pack is built.
+    try:
+        from Script_NeteaseModAeQXOhXR.public_api import (
+            CORE_VERSION,
+            PUBLIC_API_CATALOG,
+            PUBLIC_API_VERSION,
+            api_info,
+            missing_core_message,
+            validate_addon_id,
+        )
+    except Exception:
+        CORE_VERSION = "0.0.31"
+        PUBLIC_API_VERSION = 1
+        PUBLIC_API_CATALOG = {}
+
+        def api_info():
+            return {"id": "wacreate", "version": CORE_VERSION,
+                    "apiVersion": PUBLIC_API_VERSION}
+
+        def missing_core_message(addon_id=None, minimum_version=None):
+            return ("§c%s需要WACreate主包才能运行。§r\n"
+                    "请先安装并启用WACreate主包（最低版本%s），"
+                    "然后重新加载世界。" %
+                    (addon_id or "此附属包", minimum_version or CORE_VERSION))
+
+        def validate_addon_id(value):
+            return bool(re.match(r"^[a-z0-9][a-z0-9_.-]{1,63}$", str(value or "")))
 
 
 CORE_BEHAVIOR_UUID = "a94c5ffd-b621-4f1e-af3d-78ca2e0d3b7d"
@@ -928,6 +972,626 @@ class SixWayGearboxMod(object):
 '''.format(addon=addon_id)
 
 
+# ---------------------------------------------------------------------------
+# Large add-on expansion: recipe / wrench / basin / client feature bridges.
+# These generators follow the six-way gearbox pattern: an independent bridge
+# system retries integration until the core pack is available, and the core
+# keeps owning all state. Generated files never import private core modules.
+# ---------------------------------------------------------------------------
+
+_PY_NAME_RE = re.compile(r"[^A-Za-z0-9_]")
+
+
+def _py_suffix(block_name):
+    """Stable python identifier suffix derived from ``namespace:block``."""
+    return _PY_NAME_RE.sub("_", str(block_name or "").split(":")[-1]) or "Block"
+
+
+def _py_suffix_source():
+    return (
+        "_PY_NAME_RE = re.compile(r\"[^A-Za-z0-9_]\")\n"
+        "\n"
+        "\n"
+        "def _py_suffix(block_name):\n"
+        "    return _PY_NAME_RE.sub(\"_\", str(block_name or \"\").split(\":\")[-1]) or \"Block\"\n"
+    )
+
+
+def _validate_item_entries(values, field):
+    """Normalize [{itemName, count, auxValue}] entries like the core does."""
+    if values is None:
+        return None, None
+    if not isinstance(values, list):
+        return None, "%s 必须是数组" % field
+    items = []
+    for value in values:
+        if not isinstance(value, dict) or not str(value.get("itemName", "") or ""):
+            return None, "%s 每项都需要 itemName" % field
+        try:
+            count = int(value.get("count", 1) or 1)
+            aux = int(value.get("auxValue", 0) or 0)
+        except (TypeError, ValueError):
+            return None, "%s 的 count/auxValue 必须是整数" % field
+        if count <= 0:
+            return None, "%s 的 count 必须 > 0" % field
+        items.append({"itemName": str(value["itemName"]),
+                      "auxValue": aux, "count": count})
+    return items, None
+
+
+def _validate_fluid_entries(values, field):
+    """Normalize [{fluid, amount}] entries like the core does."""
+    if values is None:
+        return None, None
+    if not isinstance(values, list):
+        return None, "%s 必须是数组" % field
+    entries = []
+    for value in values:
+        if not isinstance(value, dict) or not str(value.get("fluid", "") or ""):
+            return None, "%s 每项都需要 fluid" % field
+        try:
+            amount = int(value.get("amount", 0) or 0)
+        except (TypeError, ValueError):
+            return None, "%s 的 amount 必须是整数" % field
+        if amount <= 0:
+            return None, "%s 的 amount 必须 > 0" % field
+        entries.append({"fluid": str(value["fluid"]), "amount": amount})
+    return entries, None
+
+
+def _validate_compacting_recipe(recipe, addon_id):
+    """Mirror mechanical_outputs/compacting_recipes.register_compacting_recipe."""
+    if not isinstance(recipe, dict):
+        return None, "压块配方必须是对象"
+    recipe_id = str(recipe.get("id", "") or "")
+    if not recipe_id:
+        return None, "配方缺少 id"
+    if not recipe_id.startswith(str(addon_id) + ":"):
+        return None, "配方 id 必须使用附属包命名空间（%s:...）" % addon_id
+    ingredients, error = _validate_item_entries(recipe.get("ingredients"), "ingredients")
+    if error:
+        return None, error
+    if not ingredients:
+        return None, "压块配方需要至少一个 ingredients"
+    fluid_outputs, error = _validate_fluid_entries(recipe.get("fluidOutputs"), "fluidOutputs")
+    if error:
+        return None, error
+    output = str(recipe.get("output", "") or "")
+    if not output and not fluid_outputs:
+        return None, "压块配方需要 output 或 fluidOutputs"
+    try:
+        output_aux = int(recipe.get("outputAux", 0) or 0)
+        output_count = int(recipe.get("count", 1) or 1)
+        ticks = max(1, int(recipe.get("ticks", 240) or 240))
+    except (TypeError, ValueError):
+        return None, "outputAux/count/ticks 必须是整数"
+    if output and output_count <= 0:
+        return None, "有 output 时 count 必须 > 0"
+    normalized = {"id": recipe_id, "ingredients": ingredients,
+                  "output": output, "outputAux": output_aux, "count": output_count,
+                  "fluidOutputs": fluid_outputs or [], "ticks": ticks}
+    return normalized, None
+
+
+def _validate_mixing_recipe(recipe, addon_id):
+    """Mirror mechanical_outputs/mixing_recipes.register_mixing_recipe."""
+    if not isinstance(recipe, dict):
+        return None, "搅拌配方必须是对象"
+    recipe_id = str(recipe.get("id", "") or "")
+    if not recipe_id:
+        return None, "配方缺少 id"
+    if not recipe_id.startswith(str(addon_id) + ":"):
+        return None, "配方 id 必须使用附属包命名空间（%s:...）" % addon_id
+    ingredients, error = _validate_item_entries(recipe.get("ingredients"), "ingredients")
+    if error:
+        return None, error
+    fluid_inputs, error = _validate_fluid_entries(recipe.get("fluidIngredients"), "fluidIngredients")
+    if error:
+        return None, error
+    outputs, error = _validate_item_entries(recipe.get("outputs"), "outputs")
+    if error:
+        return None, error
+    fluid_outputs, error = _validate_fluid_entries(recipe.get("fluidOutputs"), "fluidOutputs")
+    if error:
+        return None, error
+    if not ingredients and not fluid_inputs:
+        return None, "搅拌配方需要 ingredients 或 fluidIngredients"
+    if not outputs and not fluid_outputs:
+        return None, "搅拌配方需要 outputs 或 fluidOutputs"
+    try:
+        ticks = max(1, int(recipe.get("ticks", 200) or 200))
+    except (TypeError, ValueError):
+        return None, "ticks 必须是整数"
+    normalized = {"id": recipe_id, "ingredients": ingredients or [],
+                  "fluidIngredients": fluid_inputs or [], "outputs": outputs or [],
+                  "fluidOutputs": fluid_outputs or [], "ticks": ticks}
+    return normalized, None
+
+
+def _recipes_source(addon_id, compacting, mixing):
+    return '''# -*- coding: utf-8 -*-
+"""WACreate 动力盆配方注册桥（由开发者 MCP 生成）。
+
+在附属包 server system 初始化后调用 ``register(core_system)``，
+主包会把配方合并进自己的动力盆配方表（同 id 会覆盖）。
+"""
+from __future__ import unicode_literals
+
+COMPACTING_RECIPES = {compacting}
+
+MIXING_RECIPES = {mixing}
+
+
+def register(core_system):
+    """把本文件的全部配方注册进 WACreate 主包，返回是否全部成功。"""
+    if core_system is None:
+        return False
+    ok = True
+    for recipe in COMPACTING_RECIPES:
+        if not core_system.RegisterCompactingRecipe(dict(recipe)):
+            print("[{addon}] compacting recipe rejected: " + str(recipe.get("id")))
+            ok = False
+    for recipe in MIXING_RECIPES:
+        if not core_system.RegisterMixingRecipe(dict(recipe)):
+            print("[{addon}] mixing recipe rejected: " + str(recipe.get("id")))
+            ok = False
+    return ok
+'''.format(addon=addon_id,
+           compacting=json.dumps(compacting, ensure_ascii=False, indent=4, sort_keys=True),
+           mixing=json.dumps(mixing, ensure_ascii=False, indent=4, sort_keys=True))
+
+
+_BRIDGE_HEADER_TEMPLATE = '''# -*- coding: utf-8 -*-
+"""{doc}（由开发者 MCP 生成）。
+
+主包不存在时本系统会每 20 tick 静默重试注册。请把返回值中的
+modMainSnippet 注册进 ``Script_{addon}.modMain``；也可以跳过独立系统，
+直接在自己的 system 中调用 ``register(core_system)``。
+"""
+from __future__ import unicode_literals
+
+import mod.{side}.{module} as {alias}
+
+from Script_NeteaseModAeQXOhXR.public_api import get_{side}_system
+
+MOD_NAMESPACE = {addon!r}
+SYSTEM_NAME = {system!r}
+{constants}
+RETRY_TICKS = 20
+
+
+class {system}({base}()):
+    """独立桥接系统；主包持有全部状态，本系统只注册和转发。"""
+
+    def __init__(self, namespace, systemName):
+        {base}.__init__(self, namespace, systemName)
+        self.core = None
+        self.integrated = False
+        self.retry_ticks = 0
+        self.last_error = None
+        self.ListenForEvent(
+            {alias}.GetEngineNamespace(), {alias}.GetEngineSystemName(),
+            {tick_event!r}, self, self.OnTick)
+        self._try_integrate()
+
+    def OnTick(self, args=None):
+        if not self.integrated:
+            self.retry_ticks += 1
+            if self.retry_ticks >= RETRY_TICKS:
+                self.retry_ticks = 0
+                self._try_integrate()
+
+    def Destroy(self):
+        self.UnListenForEvent(
+            {alias}.GetEngineNamespace(), {alias}.GetEngineSystemName(),
+            {tick_event!r}, self, self.OnTick)
+
+    def _try_integrate(self):
+        try:
+            core = get_{side}_system({alias})
+            if core is None:
+                raise RuntimeError(
+                    "WACreate core unavailable; enable the core pack and reload")
+            if not self._register_with_core(core):
+                raise RuntimeError("WACreate rejected the registration")
+            self.core = core
+            self.integrated = True
+            self.last_error = None
+        except Exception as error:
+            message = str(error)
+            if message != self.last_error:
+                print("[{addon}] " + message)
+                self.last_error = message
+            return False
+        return True
+
+    def _register_with_core(self, core):
+{register_body}
+'''
+
+
+def _bridge_source(addon_id, system_name, side, doc, constants, register_body, methods):
+    if side == "server":
+        module, alias, tick_event = "extraServerApi", "serverApi", "OnScriptTickServer"
+        base = "serverApi.GetServerSystemCls()"
+    else:
+        module, alias, tick_event = "extraClientApi", "clientApi", "OnScriptTickClient"
+        base = "clientApi.GetClientSystemCls()"
+    header = _BRIDGE_HEADER_TEMPLATE.format(
+        doc=doc, addon=addon_id, system=system_name, side=side, module=module,
+        alias=alias, tick_event=tick_event, base=base,
+        constants=constants, register_body=register_body)
+    return header + methods
+
+
+_WRENCH_REGISTER_BODY = (
+    "        return bool(\n"
+    "            core.RegisterWrenchHandler(MACHINE_BLOCK, MOD_NAMESPACE, SYSTEM_NAME,\n"
+    "                                       method=\"HandleWrenchUse\")\n"
+    "            and core.RegisterWrenchRemoveHandler(MACHINE_BLOCK, MOD_NAMESPACE, SYSTEM_NAME,\n"
+    "                                                 method=\"HandleWrenchRemove\"))\n")
+
+_WRENCH_METHODS = '''
+    def HandleWrenchUse(self, key, args):
+        """玩家手持扳手普通右键：旋转/切换模式。
+
+        返回 True 表示事件已处理；返回 False 会回退到主包默认旋转行为。
+        """
+        # TODO: 在这里实现你自己的朝向或模式切换，例如读取
+        # self.core.GetMechanicalFacing(key) 计算新朝向并写入你的方块数据。
+        if self.core is not None:
+            self.core.MarkMechanicalDirty(key)
+        return True
+
+    def HandleWrenchRemove(self, key, args):
+        """玩家手持扳手潜行右键：拆除机器。
+
+        返回 True 表示附属包已自行处理拆除；返回 False 会交给主包
+        默认拆除流程。需要保留流体时，可先调用
+        self.core.SnapshotBasinFluidEndpoint(key) 保存快照。
+        """
+        # TODO: 掉落机器物品并清理你的缓存；随后调用
+        # self.core.MarkMechanicalDirty(key) 通知主包重建网络。
+        return False
+'''
+
+
+def _wrench_source(addon_id, machine_id):
+    constants = "MACHINE_BLOCK = %r\n" % machine_id
+    return _bridge_source(
+        addon_id, "WacreateWrenchBridgeSystem", "server",
+        "WACreate 扳手交互桥：为主包提供 HandleWrenchUse / HandleWrenchRemove 回调",
+        constants, _WRENCH_REGISTER_BODY, _WRENCH_METHODS)
+
+
+_BASIN_REGISTER_BODY = (
+    "        for item in DIRECT_PLACEMENT_ITEMS:\n"
+    "            if not core.RegisterBasinDirectPlacementItem(item):\n"
+    "                return False\n"
+    "        if REGISTER_ACCESS_PROVIDER:\n"
+    "            return bool(core.RegisterBasinAccessProvider(\n"
+    "                MOD_NAMESPACE, SYSTEM_NAME, method=\"CanAccessBasin\"))\n"
+    "        return True\n")
+
+_BASIN_METHODS = '''
+    # ------------------------------------------------------------------
+    # 动力盆公开 API 转发助手：全部要求主包已就绪（self.integrated）。
+    # ------------------------------------------------------------------
+
+    def endpoint_faces(self, key):
+        """返回动力盆四个水平流体端点朝向。"""
+        return self.core.GetBasinFluidEndpointFaces(key) if self.core else ()
+
+    def read_fluid(self, key):
+        """读取端点流体状态：fluid/amount/storedAmount/capacity/acceptsMixed。"""
+        return self.core.ReadBasinFluidEndpoint(key) if self.core else None
+
+    def insert_fluid(self, key, fluid, amount):
+        """向端点输入流体，返回实际输入数量。"""
+        return self.core.InsertBasinFluidEndpoint(key, fluid, amount) if self.core else 0
+
+    def extract_fluid(self, key, fluid, amount):
+        """从端点抽取流体，返回实际抽取数量。"""
+        return self.core.ExtractBasinFluidEndpoint(key, fluid, amount) if self.core else 0
+
+    def snapshot_fluid(self, key):
+        """保存端点流体快照（用于你自己的持久化）。"""
+        return self.core.SnapshotBasinFluidEndpoint(key) if self.core else None
+
+    def restore_fluid(self, key, snapshot):
+        """恢复端点流体快照（加载存档时调用）。"""
+        return self.core.RestoreBasinFluidEndpoint(key, snapshot) if self.core else False
+
+    def read_contents(self, key):
+        """读取动力盆当前加工输入。"""
+        return self.core.ReadBasinProcessingContents(key) if self.core else None
+
+    def can_apply(self, key, recipe):
+        """检查动力盆当前输入能否原子提交该配方。"""
+        return self.core.CanApplyBasinProcessingRecipe(key, recipe) if self.core else False
+
+    def apply_recipe(self, key, recipe):
+        """原子地消耗动力盆输入并提交输出。"""
+        return self.core.ApplyBasinProcessingRecipe(key, recipe) if self.core else False
+
+    def CanAccessBasin(self, key, operation, args):
+        """玩家物品访问动力盆前的准入门；返回 False 或 allow=False 拒绝。"""
+        # TODO: 按你的玩法限制访问，例如仅允许持有权限的玩家操作。
+        return {"allow": True}
+'''
+
+
+def _basin_source(addon_id, direct_items, access_provider):
+    constants = ("DIRECT_PLACEMENT_ITEMS = %s\n"
+                 "REGISTER_ACCESS_PROVIDER = %r\n"
+                 % (json.dumps(direct_items, ensure_ascii=False), bool(access_provider)))
+    return _bridge_source(
+        addon_id, "WacreateBasinBridgeSystem", "server",
+        "WACreate 动力盆集成桥：直接放置物品、访问准入与流体/加工 API 转发",
+        constants, _BASIN_REGISTER_BODY, _BASIN_METHODS)
+
+
+_CLIENT_REGISTER_BODY = (
+    "        ok = True\n"
+    "        for block_name in GOGGLES_INFO:\n"
+    "            suffix = _py_suffix(block_name)\n"
+    "            ok = core.RegisterGogglesProvider(\n"
+    "                block_name, MOD_NAMESPACE, SYSTEM_NAME,\n"
+    "                method=\"GetGogglesInfo_\" + suffix) and ok\n"
+    "        for fluid_id, display_name in FLUID_NAMES.items():\n"
+    "            ok = core.RegisterFluidDisplayName(fluid_id, display_name) and ok\n"
+    "        for block_name in FACE_HINTS:\n"
+    "            suffix = _py_suffix(block_name)\n"
+    "            ok = core.RegisterFaceHintProvider(\n"
+    "                block_name, MOD_NAMESPACE, SYSTEM_NAME,\n"
+    "                method=\"GetFaceHint_\" + suffix) and ok\n"
+    "        for block_name in SUPPRESSED_BLOCKS:\n"
+    "            ok = core.RegisterGogglesSuppressedBlock(block_name) and ok\n"
+    "        return ok\n")
+
+
+def _client_feature_methods(goggles, face_hints):
+    methods = ""
+    for block_name, info in sorted(goggles.items()):
+        methods += (
+            "\n"
+            "    def GetGogglesInfo_%s(self, key, state):\n"
+            "        \"\"\"护目镜 HUD 信息；返回 None 隐藏面板。\n"
+            "\n"
+            "        可用字段：title / stressLabel / stressValue /\n"
+            "        currentLabel / currentValue。需要动态数据时读取 state\n"
+            "        （含 blockName 与机械快照），这里先返回静态配置。\n"
+            "        \"\"\"\n"
+            "        return dict(GOGGLES_INFO[%r])\n" % (_py_suffix(block_name), block_name))
+    for block_name, hint in sorted(face_hints.items()):
+        methods += (
+            "\n"
+            "    def GetFaceHint_%s(self, key, face):\n"
+            "        \"\"\"方块面提示；返回包含 text 的字典或 None。\"\"\"\n"
+            "        return dict(FACE_HINTS[%r])\n" % (_py_suffix(block_name), block_name))
+    return methods or "\n"
+
+
+def _client_features_source(addon_id, goggles, fluid_names, face_hints, suppressed):
+    constants = (
+        _py_suffix_source() + "\n"
+        "GOGGLES_INFO = %s\n"
+        "FLUID_NAMES = %s\n"
+        "FACE_HINTS = %s\n"
+        "SUPPRESSED_BLOCKS = %s\n"
+        % (json.dumps(goggles, ensure_ascii=False, indent=4, sort_keys=True),
+           json.dumps(fluid_names, ensure_ascii=False, indent=4, sort_keys=True),
+           json.dumps(face_hints, ensure_ascii=False, indent=4, sort_keys=True),
+           json.dumps(suppressed, ensure_ascii=False)))
+    return _bridge_source(
+        addon_id, "WacreateClientFeaturesSystem", "client",
+        "WACreate 客户端能力桥：护目镜信息、流体显示名与方块面提示",
+        constants, _CLIENT_REGISTER_BODY,
+        _client_feature_methods(goggles, face_hints))
+
+
+def _multi_mechanical_source(addon_id, machines):
+    specs = "\n".join(
+        "    %r: {\n"
+        "        \"displayName\": %r,\n"
+        "        \"kind\": \"machine\",\n"
+        "        \"powered\": True,\n"
+        "        \"axisMode\": \"facing\",\n"
+        "        \"shaftMode\": \"axis\",\n"
+        "        \"axisRelay\": True,\n"
+        "        \"stressImpact\": 8.0,\n"
+        "        \"stressCapacity\": 128.0,\n"
+        "    }," % (machine["machineId"], machine["displayName"])
+        for machine in machines)
+    return '''# -*- coding: utf-8 -*-
+"""{count} mechanical components example.
+
+The core owns the network solver.  This add-on only supplies public
+component specifications; per-machine providers can be added later.
+"""
+
+from __future__ import unicode_literals
+
+from Script_NeteaseModAeQXOhXR import public_api
+
+ADDON_ID = {addon!r}
+ADDON_SYSTEM_NAME = "{addon}ServerSystem"
+
+MACHINE_SPECS = {{
+{specs}
+}}
+
+
+def get_source_speed(key):
+    # Return a signed RPM value for a powered source, or 0 for a consumer.
+    return 0.0
+
+
+def get_stress_capacity(key):
+    return 128.0
+
+
+def register(core_system):
+    """Call once during the add-on server-system initialization."""
+    if core_system is None:
+        return False
+    if not public_api.register_addon(core_system, ADDON_ID, "0.1.0",
+                                     name=ADDON_ID):
+        return False
+    ok = True
+    for block_name, spec in MACHINE_SPECS.items():
+        ok = bool(core_system.RegisterMechanicalComponent(
+            block_name, dict(spec),
+            providerNamespace=ADDON_ID,
+            providerSystem=ADDON_SYSTEM_NAME,
+            sourceResolver="GetSourceSpeed",
+            stressCapacityResolver="GetStressCapacity",
+        )) and ok
+    return ok
+
+
+def register_client(core_system):
+    """Register client-side visual hooks here after adding models."""
+    return core_system is not None
+'''.format(addon=addon_id, count=len(machines), specs=specs)
+
+
+@MCP.tool()
+def wacreate_add_recipes(output_dir, addon_id, compacting=None, mixing=None,
+                         force=False):
+    """为附属包批量生成动力盆压块/搅拌配方注册桥（wacreate_recipes.py）。"""
+    addon_id = str(addon_id or "")
+    if not validate_addon_id(addon_id):
+        return _json({"ok": False, "error": "addon_id 格式无效"})
+    compacting_in = compacting if isinstance(compacting, list) else []
+    mixing_in = mixing if isinstance(mixing, list) else []
+    if not compacting_in and not mixing_in:
+        return _json({"ok": False, "error": "至少提供一个 compacting 或 mixing 配方"})
+    compacting_out = []
+    mixing_out = []
+    for recipe in compacting_in:
+        normalized, error = _validate_compacting_recipe(recipe, addon_id)
+        if error:
+            return _json({"ok": False, "error": "compacting: " + error,
+                          "recipeId": str((recipe or {}).get("id", ""))})
+        compacting_out.append(normalized)
+    for recipe in mixing_in:
+        normalized, error = _validate_mixing_recipe(recipe, addon_id)
+        if error:
+            return _json({"ok": False, "error": "mixing: " + error,
+                          "recipeId": str((recipe or {}).get("id", ""))})
+        mixing_out.append(normalized)
+    try:
+        root = _safe_dir(output_dir)
+        path = root / ("Script_%s" % addon_id) / "wacreate_recipes.py"
+        _write(path, _recipes_source(addon_id, compacting_out, mixing_out), bool(force))
+    except Exception as error:
+        return _json({"ok": False, "error": str(error)})
+    return _json({
+        "ok": True, "file": str(path),
+        "compacting": len(compacting_out), "mixing": len(mixing_out),
+        "usage": "在附属包 server system 初始化后调用 "
+                 "Script_%s.wacreate_recipes.register(core_system)" % addon_id,
+        "next": ["在游戏内验证配方是否出现在动力盆中",
+                 "同 id 配方会覆盖主包或先注册的附属包配方"],
+    })
+
+
+@MCP.tool()
+def wacreate_add_wrench_handlers(output_dir, addon_id, machine_id, force=False):
+    """生成扳手交互桥：HandleWrenchUse（旋转）与 HandleWrenchRemove（拆除）回调。"""
+    addon_id = str(addon_id or "")
+    machine_id = str(machine_id or "")
+    if not validate_addon_id(addon_id):
+        return _json({"ok": False, "error": "addon_id 格式无效"})
+    if not _MACHINE_RE.match(machine_id):
+        return _json({"ok": False, "error": "machine_id 必须是 namespace:block_name"})
+    try:
+        root = _safe_dir(output_dir)
+        path = root / ("Script_%s" % addon_id) / "wacreate_wrench.py"
+        _write(path, _wrench_source(addon_id, machine_id), bool(force))
+    except Exception as error:
+        return _json({"ok": False, "error": str(error)})
+    return _json({
+        "ok": True, "file": str(path), "machineId": machine_id,
+        "callbacks": ["HandleWrenchUse(key, args)", "HandleWrenchRemove(key, args)"],
+        "modMainSnippet": (
+            "serverApi.RegisterSystem(%r, \"WacreateWrenchBridgeSystem\", "
+            "\"Script_%s.wacreate_wrench.WacreateWrenchBridgeSystem\")" % (addon_id, addon_id)),
+        "next": ["在 @Mod.InitServer 中执行 modMainSnippet 注册桥接系统",
+                 "普通右键进入 HandleWrenchUse，潜行右键进入 HandleWrenchRemove",
+                 "HandleWrenchRemove 返回 False 时交回主包默认拆除流程",
+                 "改动机械朝向后调用 core.MarkMechanicalDirty(key)"],
+    })
+
+
+@MCP.tool()
+def wacreate_add_basin_station(output_dir, addon_id, direct_placement_items=None,
+                               access_provider=False, force=False):
+    """生成动力盆集成桥：直接放置物品、访问准入和流体/加工 API 转发助手。"""
+    addon_id = str(addon_id or "")
+    if not validate_addon_id(addon_id):
+        return _json({"ok": False, "error": "addon_id 格式无效"})
+    items = direct_placement_items if isinstance(direct_placement_items, list) else []
+    if not items and not access_provider:
+        return _json({"ok": False, "error": "至少提供 direct_placement_items 或 access_provider=true"})
+    items = [str(item) for item in items]
+    try:
+        root = _safe_dir(output_dir)
+        path = root / ("Script_%s" % addon_id) / "wacreate_basin_bridge.py"
+        _write(path, _basin_source(addon_id, items, bool(access_provider)), bool(force))
+    except Exception as error:
+        return _json({"ok": False, "error": str(error)})
+    return _json({
+        "ok": True, "file": str(path),
+        "directPlacementItems": items, "accessProvider": bool(access_provider),
+        "helpers": ["endpoint_faces", "read_fluid", "insert_fluid", "extract_fluid",
+                    "snapshot_fluid", "restore_fluid", "read_contents",
+                    "can_apply", "apply_recipe"],
+        "modMainSnippet": (
+            "serverApi.RegisterSystem(%r, \"WacreateBasinBridgeSystem\", "
+            "\"Script_%s.wacreate_basin_bridge.WacreateBasinBridgeSystem\")" % (addon_id, addon_id)),
+        "next": ["在 @Mod.InitServer 中执行 modMainSnippet 注册桥接系统",
+                 "通过桥接助手的 insert_fluid/apply_recipe 等方法访问动力盆",
+                 "存档保存/加载时调用 snapshot_fluid 与 restore_fluid"],
+    })
+
+
+@MCP.tool()
+def wacreate_add_client_features(output_dir, addon_id, goggles=None,
+                                 fluid_names=None, face_hints=None,
+                                 suppressed_blocks=None, force=False):
+    """生成客户端能力桥：护目镜 HUD、流体显示名、方块面提示与护目镜屏蔽。"""
+    addon_id = str(addon_id or "")
+    if not validate_addon_id(addon_id):
+        return _json({"ok": False, "error": "addon_id 格式无效"})
+    goggles = goggles if isinstance(goggles, dict) else {}
+    fluid_names = fluid_names if isinstance(fluid_names, dict) else {}
+    face_hints = face_hints if isinstance(face_hints, dict) else {}
+    suppressed = suppressed_blocks if isinstance(suppressed_blocks, list) else []
+    if not (goggles or fluid_names or face_hints or suppressed):
+        return _json({"ok": False, "error": "goggles/fluid_names/face_hints/suppressed_blocks 至少提供一项"})
+    for block_name in list(goggles) + list(face_hints) + suppressed:
+        if not _MACHINE_RE.match(str(block_name or "")):
+            return _json({"ok": False, "error": "方块名必须是 namespace:block_name：%s" % block_name})
+    try:
+        root = _safe_dir(output_dir)
+        path = root / ("Script_%s" % addon_id) / "wacreate_client_features.py"
+        _write(path, _client_features_source(addon_id, goggles, fluid_names,
+                                             face_hints, suppressed), bool(force))
+    except Exception as error:
+        return _json({"ok": False, "error": str(error)})
+    return _json({
+        "ok": True, "file": str(path),
+        "goggles": sorted(goggles), "fluidNames": sorted(fluid_names),
+        "faceHints": sorted(face_hints), "suppressedBlocks": sorted(suppressed),
+        "modMainSnippet": (
+            "clientApi.RegisterSystem(%r, \"WacreateClientFeaturesSystem\", "
+            "\"Script_%s.wacreate_client_features.WacreateClientFeaturesSystem\")" % (addon_id, addon_id)),
+        "next": ["在 @Mod.InitClient 中执行 modMainSnippet 注册桥接系统",
+                 "护目镜信息字段：title/stressLabel/stressValue/currentLabel/currentValue",
+                 "进入游戏戴上护目镜查看附属方块 HUD 是否显示"],
+    })
 @MCP.tool()
 def wacreate_add_mechanical_animations(output_dir, addon_id, machine_id,
                                       groups=None, entity_path=None, model_path=None,
@@ -1311,24 +1975,48 @@ def wacreate_create_machine_extension(output_dir, addon_id, machine_id,
 
 
 @MCP.tool()
-def wacreate_create_mechanical_template(output_dir, addon_id, machine_id,
-                                         display_name, force=False):
-    """创建一个机械附属包骨架；默认拒绝覆盖已有文件。"""
+def wacreate_create_mechanical_template(output_dir, addon_id, machine_id=None,
+                                         display_name=None, machines=None,
+                                         force=False):
+    """创建机械附属包骨架；大型附属包可传 machines 数组一次注册多台机器。"""
     addon_id = str(addon_id or "")
-    machine_id = str(machine_id or "")
     if not validate_addon_id(addon_id):
         return _json({"ok": False, "error": "addon_id 格式无效"})
+    machines_out = []
+    if machines is not None:
+        if not isinstance(machines, list) or not machines:
+            return _json({"ok": False, "error": "machines 必须是非空数组"})
+        for machine in machines:
+            if not isinstance(machine, dict):
+                return _json({"ok": False, "error": "machines 每项必须是对象"})
+            mid = str(machine.get("machineId", "") or "")
+            mname = str(machine.get("displayName", "") or mid)
+            if not _MACHINE_RE.match(mid):
+                return _json({"ok": False,
+                              "error": "machineId 必须是 namespace:block_name：%s" % mid})
+            machines_out.append({"machineId": mid, "displayName": mname})
+        machine_id = machines_out[0]["machineId"]
+        display_name = display_name or machines_out[0]["displayName"]
+    machine_id = str(machine_id or "")
+    display_name = str(display_name or "")
     if not _MACHINE_RE.match(machine_id):
         return _json({"ok": False, "error": "machine_id 必须是 namespace:block_name"})
     if not display_name:
         return _json({"ok": False, "error": "display_name 不能为空"})
     try:
+        manifest = _template_manifest(addon_id, machine_id, display_name)
+        if machines_out:
+            manifest["content"]["mechanicalComponents"] = [
+                machine["machineId"] for machine in machines_out]
+            source = _multi_mechanical_source(addon_id, machines_out)
+        else:
+            source = _mechanical_source(addon_id, machine_id, display_name)
         root = _safe_dir(output_dir)
         files = {
-            "addon_manifest.json": _json(_template_manifest(addon_id, machine_id, display_name)) + "\n",
+            "addon_manifest.json": _json(manifest) + "\n",
             "scripts/__init__.py": "# Generated WACreate add-on package.\n",
             "scripts/dependency_guard.py": _dependency_guard(addon_id, CORE_VERSION),
-            "scripts/mechanical_extension.py": _mechanical_source(addon_id, machine_id, display_name),
+            "scripts/mechanical_extension.py": source,
             "behavior_pack/README.md": (
                 "# 行为包资源\n\n"
                 "在这里放置 %s 的方块定义，并保持资源 ID 为附属包自己的 namespace。\n" % machine_id),

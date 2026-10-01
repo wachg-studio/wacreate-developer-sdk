@@ -214,17 +214,68 @@ wacreate_add_mechanical_animations(
 
 该工具依赖主包客户端新增的稳定方法 `RegisterMechanicalVisualSpec` 和 `GetMechanicalVisualSpec`。MCP 会生成静态文件并检查 JSON、Python AST 和写入冲突，但不会假称已经通过网易游戏内的动力网络、客户端资源加载或帧动画验证；这些仍需在实际客户端中测试。
 
-## 推荐的 AI 工作流
+## 大型附属包扩展工具
+
+以下四个工具覆盖制作大型机械附属包所需的其余公共 API 家族。生成的文件遵循六向齿轮箱的桥接模式：独立系统在主包可用前每 20 tick 静默重试，主包持有全部状态，生成代码只调用公共 API，不导入主包私有模块。
+
+### `wacreate_create_mechanical_template`（多机器支持）
+
+`machines` 参数传入数组即可一次注册多台机械方块，例如：
+
+```json
+[
+  {"machineId": "electric_age:motor", "displayName": "电动机"},
+  {"machineId": "electric_age:press", "displayName": "压机"}
+]
+```
+
+生成的 `scripts/mechanical_extension.py` 会遍历 `MACHINE_SPECS` 逐一调用 `RegisterMechanicalComponent`，`addon_manifest.json` 的 `content.mechanicalComponents` 列出全部方块。单机器用法保持不变。
+
+### `wacreate_add_recipes`
+
+为已有附属包批量生成动力盆压块/搅拌配方注册桥 `Script_<addon_id>/wacreate_recipes.py`。参数：
+
+- `compacting`：压块配方数组，`{"id", "ingredients": [{"itemName", "count", "auxValue"?}], "output"?/"fluidOutputs"?, "outputAux"?, "count"?, "ticks"?}`；
+- `mixing`：搅拌配方数组，`{"id", "ingredients"/"fluidIngredients", "outputs"/"fluidOutputs", "ticks"?}`。
+
+MCP 会按主包的真实校验规则在本地预检配方（输入输出非空、数量为正、流体数量为正），并强制配方 id 使用附属包命名空间（`<addon_id>:...`），避免上线后才发现注册被拒。附属包 server system 初始化后调用 `wacreate_recipes.register(core_system)` 即可；同 id 配方会覆盖先注册的版本。
+
+### `wacreate_add_wrench_handlers`
+
+生成扳手交互桥 `Script_<addon_id>/wacreate_wrench.py`，注册 `HandleWrenchUse`（普通右键：旋转/切换模式）与 `HandleWrenchRemove`（潜行右键：拆除）两个回调。返回值带 `modMainSnippet`，粘进 `@Mod.InitServer` 即完成注册。拆除回调返回 `False` 时交回主包默认拆除流程；回调内可调用 `core.GetMechanicalFacing`、`core.MarkMechanicalDirty` 等公共方法。
+
+### `wacreate_add_basin_station`
+
+生成动力盆集成桥 `Script_<addon_id>/wacreate_basin_bridge.py`：
+
+- `direct_placement_items`：允许直接放在动力盆顶使用的附属物品；
+- `access_provider=true`：注册 `CanAccessBasin(key, operation, args)` 准入门；
+- 桥接系统内置 `read_fluid` / `insert_fluid` / `extract_fluid` / `snapshot_fluid` / `restore_fluid` / `endpoint_faces` / `read_contents` / `can_apply` / `apply_recipe` 转发助手，附属包机器读写动力盆流体、原子提交加工配方时直接调用，不必自己拼 key 和异常处理。
+
+### `wacreate_add_client_features`
+
+生成客户端能力桥 `Script_<addon_id>/wacreate_client_features.py`：
+
+- `goggles`：`{方块ID: {title, stressLabel, stressValue, currentLabel, currentValue}}`，每个方块生成独立的 `GetGogglesInfo_<后缀>` 提供器；
+- `fluid_names`：`{流体ID: 显示名}`，走 `RegisterFluidDisplayName`；
+- `face_hints`：`{方块ID: 文本}`，生成 `GetFaceHint_<后缀>` 面提示；
+- `suppressed_blocks`：屏蔽主包护目镜默认信息的方块列表。
+
+## 推荐的 AI 工作流（大型附属包）
 
 1. 先调用 `wacreate_api_catalog`，确认 API 版本和稳定入口。
-2. 调用 `wacreate_create_mechanical_template` 创建骨架。
+2. 调用 `wacreate_create_mechanical_template` 创建骨架；多台机器直接传 `machines` 数组。
 3. 修改自己的 `addon_manifest.json` 和机械规格。
 4. 添加自己的 server/client system、方块定义、模型和配方。
-5. 用 `wacreate_asset_catalog` 选择所需贴图，再用
+5. 用 `wacreate_add_recipes` 批量注册压块/搅拌配方。
+6. 用 `wacreate_add_wrench_handlers` 接入扳手旋转与拆除。
+7. 需要"机器 + 动力盆"组合玩法时，用 `wacreate_add_basin_station` 接入流体与加工 API。
+8. 用 `wacreate_add_client_features` 接入护目镜信息、流体显示名和面提示。
+9. 用 `wacreate_asset_catalog` 选择所需贴图，再用
    `wacreate_install_developer_assets` 安装到自己的资源包。
-6. 调用 `wacreate_validate_addon` 检查依赖和内部 API 引用。
-7. 对机械实体调用 `wacreate_add_mechanical_animations`（先 `dry_run=true`，确认后再写入）。
-8. 在网易运行时中测试传动、区块重载、客户端资源和异常路径。
+10. 调用 `wacreate_validate_addon` 检查依赖和内部 API 引用。
+11. 对机械实体调用 `wacreate_add_mechanical_animations`（先 `dry_run=true`，确认后再写入）。
+12. 在网易运行时中测试传动、区块重载、客户端资源和异常路径。
 
 AI 生成的代码不能直接视为已验证代码。尤其是机械源、应力、持久化和客户端实体必须通过实际游戏测试。
 

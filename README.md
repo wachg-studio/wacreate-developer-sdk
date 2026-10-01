@@ -86,8 +86,8 @@
 
 ## 📥 下载（全部在 Releases）
 
-- [MCP EXE（Windows）](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.1/wacreate-mcp.exe)
-- [公开 SDK ZIP](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.1/wacreate-community-sdk.zip)
+- [MCP EXE（Windows）](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.2.0/wacreate-mcp.exe)
+- [公开 SDK ZIP](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.2.0/wacreate-community-sdk.zip)
 - [MC Studio 测试包 ZIP](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.2/wacreate-test-pack.zip)
 - 📚 开发者知识库：<https://wachg.xyz/create/api/>
 
