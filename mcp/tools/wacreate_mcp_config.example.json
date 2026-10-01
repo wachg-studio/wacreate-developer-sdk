@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "wacreate-developer": {
+      "command": "python",
+      "args": [
+        "C:/path/to/project/tools/wacreate_mcp_server.py"
+      ],
+      "cwd": "C:/path/to/project"
+    }
+  }
+}

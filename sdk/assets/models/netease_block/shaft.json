@@ -1,0 +1,126 @@
+{
+    "format_version": "1.13.0",
+    "netease:block_geometry": {
+        "bones": [
+            {
+                "cubes": [
+                    {
+                        "origin": [
+                            -10.0,
+                            6.0,
+                            0.0
+                        ],
+                        "pivot": [
+                            0.0,
+                            16.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            4,
+                            4,
+                            16
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    8,
+                                    8
+                                ],
+                                "uv_size": [
+                                    -4,
+                                    16
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    0
+                                ],
+                                "uv_size": [
+                                    16,
+                                    4
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    8,
+                                    8
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    8,
+                                    12
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    8
+                                ],
+                                "uv_size": [
+                                    4,
+                                    16
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    4
+                                ],
+                                "uv_size": [
+                                    16,
+                                    4
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "name": "bone",
+                "pivot": [
+                    -8.0,
+                    8.0,
+                    8.0
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        ],
+        "description": {
+            "identifier": "wacreate:shaft",
+            "item_texture": "wacreate:shaft_tietu",
+            "textures": [
+                "wacreate:shaft_1"
+            ],
+            "textures_descriptions": [
+                {
+                    "length": 32,
+                    "width": 32
+                }
+            ],
+            "use_ao": true
+        }
+    }
+}

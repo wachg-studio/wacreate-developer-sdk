@@ -1,0 +1,293 @@
+{
+  "assets": [
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "安山合金机壳小齿轮",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "andesite_encased_cogwheel",
+      "kind": "block",
+      "path": "textures/blocks/andesite_encased_cogwheel.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "安山合金机壳大齿轮",
+      "dimensions": [
+        128,
+        128
+      ],
+      "id": "andesite_encased_large_cogwheel",
+      "kind": "block",
+      "path": "textures/blocks/andesite_encased_large_cogwheel.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "安山合金机壳传动杆",
+      "dimensions": [
+        32,
+        32
+      ],
+      "id": "andesite_encased_shaft",
+      "kind": "block",
+      "path": "textures/blocks/andesite_encased_shaft.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "黄铜机壳",
+      "dimensions": [
+        16,
+        16
+      ],
+      "id": "brass_casing",
+      "kind": "block",
+      "path": "textures/blocks/brass_casing.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "黄铜机壳小齿轮",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "brass_encased_cogwheel",
+      "kind": "block",
+      "path": "textures/blocks/brass_encased_cogwheel.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "黄铜机壳大齿轮",
+      "dimensions": [
+        128,
+        128
+      ],
+      "id": "brass_encased_large_cogwheel",
+      "kind": "block",
+      "path": "textures/blocks/brass_encased_large_cogwheel.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "黄铜机壳传动杆",
+      "dimensions": [
+        32,
+        32
+      ],
+      "id": "brass_encased_shaft",
+      "kind": "block",
+      "path": "textures/blocks/brass_encased_shaft.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "小齿轮",
+      "dimensions": [
+        32,
+        32
+      ],
+      "id": "cogwheel",
+      "kind": "block",
+      "path": "textures/blocks/cogwheel.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "小齿轮阴影层",
+      "dimensions": [
+        32,
+        32
+      ],
+      "id": "cogwheel_shadow",
+      "kind": "block",
+      "path": "textures/blocks/cogwheel_shadow.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "铜机壳",
+      "dimensions": [
+        16,
+        16
+      ],
+      "id": "copper_casing",
+      "kind": "block",
+      "path": "textures/blocks/copper_casing.png"
+    },
+    {
+      "available": true,
+      "category": "fluid",
+      "description": "机壳流体管道图集",
+      "dimensions": [
+        32,
+        16
+      ],
+      "id": "encased_fluid_pipe_atlas",
+      "kind": "block",
+      "path": "textures/blocks/encased_fluid_pipe_atlas.png"
+    },
+    {
+      "available": true,
+      "category": "fluid",
+      "description": "机壳管道",
+      "dimensions": [
+        16,
+        16
+      ],
+      "id": "encased_pipe",
+      "kind": "block",
+      "path": "textures/blocks/encased_pipe.png"
+    },
+    {
+      "available": true,
+      "category": "fluid",
+      "description": "流体管道图集",
+      "dimensions": [
+        64,
+        256
+      ],
+      "id": "fluid_pipe_atlas",
+      "kind": "block",
+      "path": "textures/blocks/fluid_pipe_atlas.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "齿轮箱主体",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "gearbox",
+      "kind": "block",
+      "path": "textures/blocks/Gearbox.png"
+    },
+    {
+      "available": true,
+      "category": "icon",
+      "description": "齿轮箱物品图标",
+      "dimensions": [
+        256,
+        256
+      ],
+      "id": "gearbox_icon",
+      "kind": "item",
+      "path": "textures/items/generated_icons/gearbox.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "齿轮箱阴影层",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "gearbox_shadow",
+      "kind": "block",
+      "path": "textures/blocks/Gearbox_shadow.png"
+    },
+    {
+      "available": true,
+      "category": "icon",
+      "description": "齿轮换向器物品图标",
+      "dimensions": [
+        256,
+        256
+      ],
+      "id": "gearshift_icon",
+      "kind": "item",
+      "path": "textures/items/generated_icons/gearshift.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "大齿轮",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "large_cogwheel",
+      "kind": "block",
+      "path": "textures/blocks/large_cogwheel.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "大齿轮阴影层",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "large_cogwheel_shadow",
+      "kind": "block",
+      "path": "textures/blocks/large_cogwheel_shadow.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "基础传动杆",
+      "dimensions": [
+        32,
+        32
+      ],
+      "id": "shaft",
+      "kind": "block",
+      "path": "textures/blocks/shaft.png"
+    },
+    {
+      "available": true,
+      "category": "icon",
+      "description": "传动杆物品图标",
+      "dimensions": [
+        256,
+        256
+      ],
+      "id": "shaft_icon",
+      "kind": "item",
+      "path": "textures/items/generated_icons/shaft.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "传动杆阴影层",
+      "dimensions": [
+        32,
+        32
+      ],
+      "id": "shaft_shadow",
+      "kind": "block",
+      "path": "textures/blocks/shaft_shadow.png"
+    },
+    {
+      "available": true,
+      "category": "utility",
+      "description": "透明占位纹理",
+      "dimensions": [
+        16,
+        16
+      ],
+      "id": "transparent",
+      "kind": "block",
+      "path": "textures/blocks/wacreate_transparent.png"
+    },
+    {
+      "available": true,
+      "category": "mechanical",
+      "description": "立式齿轮箱阴影层",
+      "dimensions": [
+        64,
+        64
+      ],
+      "id": "vertical_gearbox_shadow",
+      "kind": "block",
+      "path": "textures/blocks/Gearboxshu_shadow.png"
+    }
+  ],
+  "version": 1
+}

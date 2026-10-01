@@ -1,0 +1,708 @@
+{
+    "format_version": "1.13.0",
+    "netease:block_geometry": {
+        "bones": [
+            {
+                "cubes": [
+                    {
+                        "origin": [
+                            -16,
+                            0,
+                            0
+                        ],
+                        "pivot": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            16,
+                            2,
+                            16
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    0
+                                ],
+                                "uv_size": [
+                                    16,
+                                    16
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    20
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    20
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    20
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    0
+                                ],
+                                "uv_size": [
+                                    16,
+                                    16
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    20
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "origin": [
+                            -15.05,
+                            2,
+                            0.95
+                        ],
+                        "pivot": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            14.100000000000001,
+                            12,
+                            14.100000000000001
+                        ],
+                        "uv": {
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    16
+                                ],
+                                "uv_size": [
+                                    14,
+                                    12
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    16
+                                ],
+                                "uv_size": [
+                                    14,
+                                    12
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    16
+                                ],
+                                "uv_size": [
+                                    14,
+                                    12
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    16
+                                ],
+                                "uv_size": [
+                                    14,
+                                    12
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "origin": [
+                            -16,
+                            14,
+                            0
+                        ],
+                        "pivot": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            16,
+                            2,
+                            16
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    0
+                                ],
+                                "uv_size": [
+                                    16,
+                                    16
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    22
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    22
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    22
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    16
+                                ],
+                                "uv_size": [
+                                    -16,
+                                    -16
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    22
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "name": "Gearbox",
+                "pivot": [
+                    -8,
+                    8,
+                    8
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                "cubes": [
+                    {
+                        "origin": [
+                            -16,
+                            6,
+                            6
+                        ],
+                        "pivot": [
+                            -16,
+                            16,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            8,
+                            4,
+                            4
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    40,
+                                    16
+                                ],
+                                "uv_size": [
+                                    -8,
+                                    4
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    8,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    8
+                                ],
+                                "uv_size": [
+                                    8,
+                                    4
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    12
+                                ],
+                                "uv_size": [
+                                    8,
+                                    4
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    14,
+                                    24
+                                ],
+                                "uv_size": [
+                                    8,
+                                    4
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    12,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "name": "axisW",
+                "parent": "Gearbox",
+                "pivot": [
+                    -8,
+                    8,
+                    8
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                "cubes": [
+                    {
+                        "origin": [
+                            -8,
+                            6,
+                            6
+                        ],
+                        "pivot": [
+                            -16,
+                            16,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            8,
+                            4,
+                            4
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    40,
+                                    16
+                                ],
+                                "uv_size": [
+                                    -8,
+                                    4
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    8,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    8
+                                ],
+                                "uv_size": [
+                                    8,
+                                    4
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    12
+                                ],
+                                "uv_size": [
+                                    8,
+                                    4
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    14,
+                                    24
+                                ],
+                                "uv_size": [
+                                    8,
+                                    4
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    12,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "name": "axisE",
+                "parent": "Gearbox",
+                "pivot": [
+                    -8,
+                    8,
+                    8
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                "cubes": [
+                    {
+                        "origin": [
+                            -10,
+                            6,
+                            0
+                        ],
+                        "pivot": [
+                            0,
+                            16,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            4,
+                            4,
+                            8
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    8
+                                ],
+                                "uv_size": [
+                                    -4,
+                                    8
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    0
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    4,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    8
+                                ],
+                                "uv_size": [
+                                    4,
+                                    8
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    4
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "name": "axisN",
+                "parent": "Gearbox",
+                "pivot": [
+                    -8,
+                    8,
+                    8
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                "cubes": [
+                    {
+                        "origin": [
+                            -10,
+                            6,
+                            8
+                        ],
+                        "pivot": [
+                            0,
+                            16,
+                            0
+                        ],
+                        "rotation": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "size": [
+                            4,
+                            4,
+                            8
+                        ],
+                        "uv": {
+                            "down": {
+                                "texture": 0,
+                                "uv": [
+                                    24,
+                                    8
+                                ],
+                                "uv_size": [
+                                    -4,
+                                    8
+                                ]
+                            },
+                            "east": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    0
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            },
+                            "north": {
+                                "texture": 0,
+                                "uv": [
+                                    0,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "south": {
+                                "texture": 0,
+                                "uv": [
+                                    4,
+                                    28
+                                ],
+                                "uv_size": [
+                                    4,
+                                    4
+                                ]
+                            },
+                            "up": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    8
+                                ],
+                                "uv_size": [
+                                    4,
+                                    8
+                                ]
+                            },
+                            "west": {
+                                "texture": 0,
+                                "uv": [
+                                    16,
+                                    4
+                                ],
+                                "uv_size": [
+                                    16,
+                                    2
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "name": "axisS",
+                "parent": "Gearbox",
+                "pivot": [
+                    -8,
+                    8,
+                    8
+                ],
+                "rotation": [
+                    0,
+                    0,
+                    0
+                ]
+            }
+        ],
+        "description": {
+            "identifier": "wacreate:Gearbox",
+            "item_texture": "wacreate:Gearbox",
+            "textures": [
+                "wacreate:Gearbox_1"
+            ],
+            "textures_descriptions": [
+                {
+                    "length": 64,
+                    "width": 64
+                }
+            ],
+            "use_ao": true
+        }
+    }
+}
