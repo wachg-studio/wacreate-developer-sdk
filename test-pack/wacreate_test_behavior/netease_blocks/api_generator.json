@@ -1,0 +1,61 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:block": {
+    "components": {
+      "minecraft:block_light_absorption": {
+        "value": 1
+      },
+      "minecraft:destroy_time": {
+        "value": 1.0
+      },
+      "netease:aabb": {
+        "clip": [
+          {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "collision": [
+          {
+            "min": [
+              0,
+              0,
+              0
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          }
+        ]
+      },
+      "netease:block_entity": {
+        "client_tick": true,
+        "movable": false,
+        "tick": true
+      },
+      "netease:listen_block_remove": {
+        "value": true
+      },
+      "netease:neighborchanged_sendto_script": {
+        "value": true
+      },
+      "netease:tier": {
+        "digger": "pickaxe"
+      }
+    },
+    "description": {
+      "category": "create_wachg",
+      "identifier": "wacreate_test:api_generator"
+    }
+  }
+}

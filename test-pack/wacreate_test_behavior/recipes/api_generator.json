@@ -1,0 +1,28 @@
+{
+  "format_version": "1.12",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "wacreate_test:api_generator"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "SSS",
+      "SAS",
+      "SSS"
+    ],
+    "key": {
+      "S": {
+        "item": "wacreate:shaft"
+      },
+      "A": {
+        "item": "wacreate:andesite_alloy"
+      }
+    },
+    "result": {
+      "item": "wacreate_test:api_generator",
+      "count": 1
+    }
+  }
+}

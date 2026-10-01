@@ -1,0 +1,39 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "机械动力·蛙创studio 开发者测试包资源",
+    "description": "最小公共 API 测试资源",
+    "uuid": "68efebdb-e029-4357-89d5-b1db5f1dfacc",
+    "version": [
+      0,
+      1,
+      0
+    ],
+    "min_engine_version": [
+      1,
+      18,
+      0
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "37ee63e0-86a3-4a44-82c9-f7283c304e62",
+      "version": [
+        0,
+        1,
+        0
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "24f71408-5083-4a6a-8708-631bcb7a6ee0",
+      "version": [
+        0,
+        0,
+        31
+      ]
+    }
+  ]
+}

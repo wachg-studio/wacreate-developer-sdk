@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "wacreate_test:api_generator_entity",
+      "materials": {
+        "default": "entity_alphatest"
+      },
+      "textures": {
+        "default": "textures/blocks/api_generator"
+      },
+      "geometry": {
+        "default": "geometry.wacreate_test_generator"
+      },
+      "render_controllers": [
+        "controller.render.default"
+      ]
+    }
+  }
+}

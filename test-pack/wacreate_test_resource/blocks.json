@@ -1,0 +1,18 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "wacreate_test:api_generator": {
+    "client_entity": {
+      "block_icon": "wacreate_test:api_generator",
+      "destroyed_textures": "wacreate_test:api_generator",
+      "hand_model_use_client_entity": true,
+      "identifier": "wacreate_test:api_generator_entity"
+    },
+    "netease_model": "",
+    "sound": "wood",
+    "textures": "wacreate_test:api_generator"
+  }
+}
