@@ -1,0 +1,31 @@
+name: 建议反馈
+description: 提交 MCP、API、模型、文档或附属包工作流建议
+title: "[建议] "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 建议类型
+      options:
+        - MCP 新功能
+        - 公共 API
+        - 模型与动画
+        - 附属包工作流
+        - 文档与教程
+        - 兼容性问题
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: 具体描述
+      description: 说明问题、期望行为和最小示例。
+    validations:
+      required: true
+  - type: textarea
+    id: benefit
+    attributes:
+      label: 对开发者的帮助
+    validations:
+      required: false
