@@ -110,7 +110,7 @@ MCP 的源码位于 `mcp/tools/`，开发文档位于 `mcp/tools/WACREATE_MCP_CN
 
 - [MCP EXE](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.1/wacreate-mcp.exe)
 - [公开 SDK ZIP](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.1/wacreate-community-sdk.zip)
-- [MC Studio 测试包 ZIP](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.1/wacreate-test-pack.zip)
+- [MC Studio 测试包 ZIP](https://github.com/wachg-studio/wacreate-developer-sdk/releases/download/v0.1.2/wacreate-test-pack.zip)
 - [开发者知识库](https://wachg.xyz/create/api/)
 
 ## 建议反馈
@@ -120,3 +120,4 @@ MCP 的源码位于 `mcp/tools/`，开发文档位于 `mcp/tools/WACREATE_MCP_CN
 **https://wachg.xyz/create/suggest/**
 
 附属包收益完全归创作者，创作者保留品牌、内容和定价；附属包必须依赖机械动力·蛙创主包，不能独立替代主包运行时。
+
